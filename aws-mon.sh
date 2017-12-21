@@ -21,6 +21,8 @@ SCRIPT_NAME=${0##*/}
 SCRIPT_VERSION=1.1 
 
 instanceid=`wget -q -O - http://169.254.169.254/latest/meta-data/instance-id`
+amiid=`wget -q -O - http://169.254.169.254/latest/meta-data/ami-id`
+asgname=$(aws autoscaling describe-auto-scaling-instances --instance-ids=`wget -q -O - http://169.254.169.254/latest/meta-data/instance-id` | jq -r '.AutoScalingInstances[].AutoScalingGroupName')
 azone=`wget -q -O - http://169.254.169.254/latest/meta-data/placement/availability-zone`
 region=${azone/%?/}
 export EC2_REGION=$region
@@ -317,7 +319,7 @@ if [ $FROM_CRON -eq 1 ]; then
 fi
 
 # CloudWatch Command Line Interface Option
-CLOUDWATCH_OPTS="--namespace System/Detail/Linux --dimensions InstanceId=$instanceid"
+CLOUDWATCH_OPTS="--namespace System/Detail/Linux --dimensions AmiId=$amiid,AsgName=$asgname,InstanceId=$instanceid"
 if [ -n "$PROFILE" ]; then
     CLOUDWATCH_OPTS="$CLOUDWATCH_OPTS --profile $PROFILE"
 fi
